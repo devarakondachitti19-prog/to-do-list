@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My To-Do List</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      display: flex;
+      justify-content: center;
+      padding: 50px 15px;
+      margin: 0;
+    }
+    .app {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      height: fit-content;
+      box-shadow: 0 4px 15px #0001;
+    }
+    h1 { text-align: center; color: #2563eb; }
+    .input-row { display: flex; gap: 8px; }
+    input[type="text"] {
+      flex: 1;
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      border: none;
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+    }
+    ul { padding: 0; list-style: none; }
+    li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    li span { flex: 1; overflow-wrap: anywhere; }
+    li.done span { text-decoration: line-through; color: #888; }
+    .delete { background: #ef4444; }
+    #count { color: #64748b; text-align: center; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>My To-Do List</h1>
+    <form id="taskForm" class="input-row">
+      <input type="text" id="taskInput" placeholder="Enter a task..." required>
+      <button type="submit">Add</button>
+    </form>
+    <ul id="taskList"></ul>
+    <p id="count">0 tasks</p>
+  </main>
+
+  <script>
+    const input = document.getElementById("taskInput");
+    const list = document.getElementById("taskList");
+    const count = document.getElementById("count");
+    let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+
+    function save() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+      render();
+    }
+
+    function render() {
+      list.replaceChildren();
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        li.className = task.done ? "done" : "";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = task.done;
+        checkbox.setAttribute("aria-label", "Complete task");
+        checkbox.onchange = () => {
+          tasks[index].done = checkbox.checked;
+          save();
+        };
+
+        const span = document.createElement("span");
+        span.textContent = task.text;
+
+        const del = document.createElement("button");
+        del.textContent = "Delete";
+        del.className = "delete";
+        del.onclick = () => {
+          tasks.splice(index, 1);
+          save();
+        };
+
+        li.append(checkbox, span, del);
+        list.appendChild(li);
+      });
+      count.textContent = `${tasks.length} task(s) • ${tasks.filter(t => t.done).length} completed`;
+    }
+
+    document.getElementById("taskForm").onsubmit = (event) => {
+      event.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      tasks.push({ text, done: false });
+      input.value = "";
+      save();
+    };
+
+    render();
+  </script>
+</body>
+</html>
